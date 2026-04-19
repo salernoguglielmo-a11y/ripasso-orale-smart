@@ -86,9 +86,21 @@ npm run typecheck  # solo controllo tipi
 
 ## Deploy online
 
-Il risultato di `npm run build` è una SPA statica in `dist/`: basta pubblicarla su Netlify, Vercel, GitHub Pages o qualunque hosting statico.
+Il risultato di `npm run build` è una SPA statica in `dist/`: pubblicabile su Netlify, GitHub Pages o qualunque hosting statico.
 
-> Se usi un hosting che non gestisce il fallback dei path SPA, aggiungi una regola per servire `index.html` su tutte le route.
+### Vercel (CLI locale)
+
+La CLI di Vercel è già tra le devDependencies e c'è un `vercel.json` con il fallback SPA (tutte le route → `index.html`).
+
+```bash
+npx vercel login        # una sola volta
+npm run deploy:preview  # deploy di anteprima
+npm run deploy          # deploy in produzione
+```
+
+Al primo deploy Vercel chiede di collegare il progetto (crea/seleziona il progetto, tiene `framework: vite`, `outputDirectory: dist`). Le risposte vengono salvate in `.vercel/`, che è già ignorato da git.
+
+> Su altri hosting, se non gestiscono il fallback SPA, aggiungi una regola per servire `index.html` su tutte le route.
 
 ## Dati
 
