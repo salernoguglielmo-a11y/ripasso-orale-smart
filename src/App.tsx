@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { cardsBySubject } from './data';
 import { StudyStatus, Subject, TopicCard } from './types';
 
@@ -289,7 +289,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Badge({ children }: { children: React.ReactNode }) {
+function Badge({ children }: { children: ReactNode }) {
   return <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">{children}</span>;
 }
 
