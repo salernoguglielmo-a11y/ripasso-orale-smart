@@ -5,11 +5,12 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { exportData, importData } from '@/lib/storage';
 
 export function SettingsPage() {
-  const { data, updateSettings, replaceAll, resetAll } = useApp();
+  const { data, updateSettings, replaceAll, resetAll, loadProgramma } = useApp();
   const fileRef = useRef<HTMLInputElement>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [dailyGoal, setDailyGoal] = useState<number>(data.settings.dailyGoal);
+  const [programmaMsg, setProgrammaMsg] = useState<string | null>(null);
 
   const handleExport = () => {
     const json = exportData(data);
@@ -64,6 +65,35 @@ export function SettingsPage() {
             Salva
           </button>
         </div>
+      </section>
+
+      <section className="card mt-4 p-5">
+        <h2 className="text-lg font-semibold">Programma di studio</h2>
+        <p className="mb-3 text-sm text-ink-500">
+          Carica il programma completo di <strong>diritto penale</strong>,{' '}
+          <strong>diritto civile</strong> e <strong>procedura penale</strong>.
+          Le materie e gli argomenti già presenti non vengono toccati: si
+          aggiungono solo i mancanti.
+        </p>
+        <button
+          className="btn-primary"
+          onClick={() => {
+            const { addedSubjects, addedTopics } = loadProgramma();
+            if (addedSubjects === 0 && addedTopics === 0) {
+              setProgrammaMsg('Il programma era già presente: nulla da aggiungere.');
+            } else {
+              const parts = [];
+              if (addedSubjects > 0) parts.push(`${addedSubjects} materie`);
+              if (addedTopics > 0) parts.push(`${addedTopics} argomenti`);
+              setProgrammaMsg(`Aggiunti: ${parts.join(' e ')}.`);
+            }
+          }}
+        >
+          Carica programma completo
+        </button>
+        {programmaMsg && (
+          <p className="mt-3 text-sm text-accent-700">{programmaMsg}</p>
+        )}
       </section>
 
       <section className="card mt-4 p-5">

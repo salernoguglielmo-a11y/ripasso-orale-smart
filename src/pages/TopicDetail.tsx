@@ -7,6 +7,7 @@ import { ConfidenceBar } from '@/components/ui/ConfidenceBar';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TopicForm } from '@/components/forms/TopicForm';
+import { StudyCard } from '@/components/topic/StudyCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import {
   PRIORITY_LABEL,
@@ -131,6 +132,12 @@ export function TopicDetailPage() {
           </>
         }
       />
+
+      {topic.study && (
+        <div className="mb-4">
+          <StudyCard study={topic.study} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <section className="card p-5 lg:col-span-2">

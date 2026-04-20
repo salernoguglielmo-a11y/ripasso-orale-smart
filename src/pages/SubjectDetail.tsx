@@ -35,9 +35,9 @@ export function SubjectDetailPage() {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'' | (typeof STATUS_OPTIONS)[number]>('');
   const [priorityFilter, setPriorityFilter] = useState<'' | (typeof PRIORITY_OPTIONS)[number]>('');
-  const [sortBy, setSortBy] = useState<'priority' | 'confidence' | 'title' | 'recent'>(
-    'priority',
-  );
+  const [sortBy, setSortBy] = useState<
+    'programma' | 'priority' | 'confidence' | 'title' | 'recent'
+  >('programma');
 
   const topics = useMemo(() => {
     if (!subject) return [];
@@ -65,8 +65,16 @@ export function SubjectDetailPage() {
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
           );
         case 'priority':
-        default:
           return priorityRank[a.priority] - priorityRank[b.priority];
+        case 'programma':
+        default: {
+          const ai = a.study?.orderIndex;
+          const bi = b.study?.orderIndex;
+          if (ai == null && bi == null) return a.title.localeCompare(b.title);
+          if (ai == null) return 1;
+          if (bi == null) return -1;
+          return ai - bi;
+        }
       }
     });
     return list;
@@ -143,6 +151,7 @@ export function SubjectDetailPage() {
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
         >
+          <option value="programma">Ordine del programma</option>
           <option value="priority">Ordina per priorità</option>
           <option value="confidence">Ordina per confidenza</option>
           <option value="title">Ordina per titolo</option>

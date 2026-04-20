@@ -1,126 +1,155 @@
 import type { AppData, Subject, Topic } from '@/types';
 import { nowIso, uid } from './utils';
+import {
+  PROGRAMMA_CARDS,
+  PROGRAMMA_SUBJECTS,
+  type ProgrammaCard,
+  type ProgrammaSubjectKey,
+} from '@/data/programma';
 
 const STORAGE_KEY = 'ripasso-orale-smart/v1';
 const DATA_VERSION = 1;
 
 export const defaultSettings = () => ({ dailyGoal: 5 });
 
-/** Dati di partenza: materie giuridiche con alcuni argomenti d'esempio. */
-export const buildSeedData = (): AppData => {
+/**
+ * Costruisce subjects + topics a partire dal programma importato dal repo sorgente.
+ * Usato sia come seed iniziale sia dalla funzione di merge in caso di re-import.
+ */
+const buildFromProgramma = (): { subjects: Subject[]; topics: Topic[] } => {
   const created = nowIso();
+  const subjectByKey = new Map<ProgrammaSubjectKey, Subject>();
 
-  const penale: Subject = {
-    id: uid(),
-    name: 'Diritto penale',
-    description: 'Parte generale e speciale.',
-    color: 'rosso',
-    createdAt: created,
-  };
-  const procPenale: Subject = {
-    id: uid(),
-    name: 'Procedura penale',
-    description: 'Atti, indagini, dibattimento e impugnazioni.',
-    color: 'petrolio',
-    createdAt: created,
-  };
-  const civile: Subject = {
-    id: uid(),
-    name: 'Diritto civile',
-    description: 'Obbligazioni, contratti, responsabilità.',
-    color: 'grigio',
-    createdAt: created,
-  };
+  const subjects: Subject[] = PROGRAMMA_SUBJECTS.map((s) => {
+    const subject: Subject = {
+      id: uid(),
+      name: s.name,
+      description: s.description,
+      color: s.color,
+      createdAt: created,
+    };
+    subjectByKey.set(s.key, subject);
+    return subject;
+  });
 
-  const mkTopic = (
-    subjectId: string,
-    title: string,
-    note: string,
-    priority: Topic['priority'],
-    status: Topic['status'],
-    confidence: number,
-    keywords: string[],
-  ): Topic => ({
+  const topics: Topic[] = PROGRAMMA_CARDS.map((c) =>
+    cardToTopic(c, subjectByKey.get(c.subjectKey)!.id, created),
+  );
+
+  return { subjects, topics };
+};
+
+/** Converte una singola scheda del programma in un Topic del nostro modello. */
+const cardToTopic = (c: ProgrammaCard, subjectId: string, created: string): Topic => {
+  const flashcards = c.flashcards.map((f) => ({
+    id: uid(),
+    question: f.q,
+    answer: f.a,
+    createdAt: created,
+  }));
+  const questions = [...c.classicQuestions, ...c.trapQuestions].map((t) => ({
+    id: uid(),
+    text: t,
+    createdAt: created,
+  }));
+  // La nota sintetica è una distillazione leggibile: l'utente vede comunque
+  // la scheda completa nella sezione "Scheda di studio" del TopicDetail.
+  const note = [c.definition, c.ratio ? `Ratio: ${c.ratio}` : null]
+    .filter(Boolean)
+    .join('\n\n');
+  return {
     id: uid(),
     subjectId,
-    title,
+    title: c.title,
     note,
-    priority,
-    status,
-    confidence,
-    keywords,
+    priority: c.priority,
+    status: 'da_studiare',
+    confidence: 0,
+    keywords: c.keywords,
     subtopics: [],
-    flashcards: [],
-    questions: [],
+    flashcards,
+    questions,
     lastReviewedAt: null,
     createdAt: created,
     updatedAt: created,
-  });
+    study: {
+      area: c.area,
+      examFrequency: c.examFrequency,
+      difficulty: c.difficulty,
+      orderIndex: c.orderIndex,
+      definition: c.definition,
+      ratio: c.ratio,
+      keyNorms: c.keyNorms,
+      coreElements: c.coreElements,
+      distinctions: c.distinctions,
+      oralAnswerShort: c.oralAnswerShort,
+      oralAnswerExtended: c.oralAnswerExtended,
+      miniCase: c.miniCase,
+      jurisprudenceNotes: c.jurisprudenceNotes,
+      commonMistakes: c.commonMistakes,
+      checklist: c.checklist,
+      sourceKey: c.key,
+    },
+  };
+};
 
-  const topics: Topic[] = [
-    mkTopic(
-      penale.id,
-      'Principio di legalità',
-      'Art. 25 Cost., art. 1 e 2 c.p. Riserva di legge, tassatività, irretroattività.',
-      'alta',
-      'in_ripasso',
-      55,
-      ['legalità', 'riserva di legge', 'tassatività', 'irretroattività'],
-    ),
-    mkTopic(
-      penale.id,
-      'Elemento soggettivo',
-      'Dolo, colpa, preterintenzione. Dolo eventuale vs colpa cosciente.',
-      'alta',
-      'da_studiare',
-      30,
-      ['dolo', 'colpa', 'preterintenzione', 'dolo eventuale'],
-    ),
-    mkTopic(
-      penale.id,
-      'Cause di giustificazione',
-      'Legittima difesa, stato di necessità, consenso dell’avente diritto.',
-      'media',
-      'in_ripasso',
-      60,
-      ['scriminanti', 'legittima difesa', 'stato di necessità'],
-    ),
-    mkTopic(
-      procPenale.id,
-      'Misure cautelari personali',
-      'Presupposti ex art. 273-274 c.p.p., principio di proporzionalità e adeguatezza.',
-      'alta',
-      'da_studiare',
-      25,
-      ['custodia cautelare', 'gravi indizi', 'esigenze cautelari'],
-    ),
-    mkTopic(
-      procPenale.id,
-      'Riti speciali',
-      'Giudizio abbreviato, patteggiamento, decreto penale, direttissimo, immediato.',
-      'media',
-      'in_ripasso',
-      50,
-      ['abbreviato', 'patteggiamento', 'decreto penale'],
-    ),
-    mkTopic(
-      civile.id,
-      'Responsabilità contrattuale',
-      'Artt. 1218 e segg.: inadempimento, impossibilità, onere della prova.',
-      'media',
-      'in_ripasso',
-      45,
-      ['1218', 'inadempimento', 'onere prova'],
-    ),
-  ];
-
+/** Dati di partenza: programma completo di penale, civile e procedura penale. */
+export const buildSeedData = (): AppData => {
+  const { subjects, topics } = buildFromProgramma();
   return {
     version: DATA_VERSION,
-    subjects: [penale, procPenale, civile],
+    subjects,
     topics,
     sessions: [],
     settings: defaultSettings(),
   };
+};
+
+/**
+ * Unisce il programma ai dati correnti senza distruggere il progresso:
+ * - se una materia del programma non esiste, la crea
+ * - se un argomento del programma (match per sourceKey o titolo+materia) non esiste, lo crea
+ * - altrimenti lascia l'argomento esistente intatto
+ */
+export const mergeProgrammaInto = (data: AppData): AppData => {
+  const created = nowIso();
+  const subjects = [...data.subjects];
+  const topics = [...data.topics];
+  const subjectByKey = new Map<ProgrammaSubjectKey, Subject>();
+
+  for (const ps of PROGRAMMA_SUBJECTS) {
+    const existing = subjects.find(
+      (s) => s.name.toLowerCase() === ps.name.toLowerCase(),
+    );
+    if (existing) {
+      subjectByKey.set(ps.key, existing);
+    } else {
+      const created_s: Subject = {
+        id: uid(),
+        name: ps.name,
+        description: ps.description,
+        color: ps.color,
+        createdAt: created,
+      };
+      subjects.push(created_s);
+      subjectByKey.set(ps.key, created_s);
+    }
+  }
+
+  for (const card of PROGRAMMA_CARDS) {
+    const subject = subjectByKey.get(card.subjectKey);
+    if (!subject) continue;
+    const already = topics.find(
+      (t) =>
+        t.subjectId === subject.id &&
+        (t.study?.sourceKey === card.key ||
+          t.title.toLowerCase() === card.title.toLowerCase()),
+    );
+    if (already) continue;
+    topics.push(cardToTopic(card, subject.id, created));
+  }
+
+  return { ...data, subjects, topics };
 };
 
 const isValidData = (d: unknown): d is AppData => {
@@ -151,7 +180,6 @@ export const loadData = (): AppData => {
       saveData(seed);
       return seed;
     }
-    // Assicura campi nuovi introdotti in versioni future (safe default).
     return {
       version: DATA_VERSION,
       subjects: parsed.subjects,
@@ -177,7 +205,7 @@ export const saveData = (data: AppData): void => {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch {
-    // In caso di quota esaurita ignoriamo: l'utente vedrà i dati in memoria.
+    // Quota esaurita: l'utente vedrà comunque i dati in memoria.
   }
 };
 

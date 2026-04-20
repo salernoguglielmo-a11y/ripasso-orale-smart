@@ -20,7 +20,12 @@ import type {
   TopicStatus,
   ActivityType,
 } from '@/types';
-import { loadData, saveData, resetData as storageReset } from '@/lib/storage';
+import {
+  loadData,
+  mergeProgrammaInto,
+  saveData,
+  resetData as storageReset,
+} from '@/lib/storage';
 import { clamp, nowIso, uid } from '@/lib/utils';
 
 type Action =
@@ -110,6 +115,8 @@ interface AppContextValue {
   // data management
   replaceAll: (data: AppData) => void;
   resetAll: () => void;
+  /** Unisce il programma completo ai dati correnti, senza perdere il progresso. */
+  loadProgramma: () => { addedTopics: number; addedSubjects: number };
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -356,6 +363,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_ALL', data: storageReset() });
   }, []);
 
+  const loadProgramma: AppContextValue['loadProgramma'] = useCallback(() => {
+    const next = mergeProgrammaInto(data);
+    const addedSubjects = next.subjects.length - data.subjects.length;
+    const addedTopics = next.topics.length - data.topics.length;
+    dispatch({ type: 'SET_ALL', data: next });
+    return { addedSubjects, addedTopics };
+  }, [data]);
+
   const value = useMemo<AppContextValue>(
     () => ({
       data,
@@ -380,6 +395,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateSettings,
       replaceAll,
       resetAll,
+      loadProgramma,
     }),
     [
       data,
@@ -404,6 +420,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateSettings,
       replaceAll,
       resetAll,
+      loadProgramma,
     ],
   );
 

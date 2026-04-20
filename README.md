@@ -106,4 +106,6 @@ Al primo deploy Vercel chiede di collegare il progetto (crea/seleziona il proget
 
 I dati sono serializzati sotto la chiave `ripasso-orale-smart/v1` in `localStorage`. In qualsiasi momento puoi esportare/importare un backup JSON dalle Impostazioni.
 
-Al primo avvio l'app carica dati di esempio su diritto penale, procedura penale e civile, che puoi tranquillamente modificare o eliminare.
+Al primo avvio l'app carica **il programma completo** di diritto penale, diritto civile e procedura penale (12 schede di studio importate da `salernoguglielmo-a11y/Ripasso_claude_orale`): definizione, ratio, norme chiave, risposta orale breve/estesa, flashcard, domande trabocchetto, errori frequenti e checklist.
+
+Se hai già dei dati e vuoi aggiungere il programma senza perdere il progresso, vai in **Impostazioni → Programma di studio → Carica programma completo**: aggiunge solo ciò che manca.

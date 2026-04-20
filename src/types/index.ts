@@ -32,6 +32,34 @@ export interface Subtopic {
   done: boolean;
 }
 
+/**
+ * Scheda di studio estesa, compatibile con le "TopicCard" del repo sorgente.
+ * Tutti i campi sono opzionali: un Topic creato a mano dall'utente può non averli,
+ * mentre i Topic importati dal programma li popolano per una UI più ricca.
+ */
+export interface TopicStudyContent {
+  area?: string;
+  examFrequency?: 'alta' | 'media' | 'bassa';
+  difficulty?: 'base' | 'intermedia' | 'alta';
+  /** Ordine logico all'interno della materia (1..N). */
+  orderIndex?: number;
+  definition?: string;
+  ratio?: string;
+  keyNorms?: string[];
+  coreElements?: string[];
+  distinctions?: string[];
+  oralAnswerShort?: string;
+  oralAnswerExtended?: string;
+  miniCase?: string;
+  jurisprudenceNotes?: string;
+  commonMistakes?: string[];
+  checklist?: string[];
+  /** slug di altre schede collegate. */
+  links?: string[];
+  /** chiave stabile del programma di provenienza (slug) per dedup. */
+  sourceKey?: string;
+}
+
 /** Argomento: unità minima che si studia e ripassa. */
 export interface Topic {
   id: string;
@@ -50,6 +78,8 @@ export interface Topic {
   lastReviewedAt: string | null; // ISO o null se mai ripassato
   createdAt: string;
   updatedAt: string;
+  /** Contenuti di studio estesi opzionali (caricati dal programma). */
+  study?: TopicStudyContent;
 }
 
 /** Materia: raggruppa più argomenti (es. Diritto penale). */
